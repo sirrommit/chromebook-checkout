@@ -1,0 +1,42 @@
+{
+  "_readme": "Copy to checkout-config.json in the kiosk's folder and edit. This file stays on the device and must never be committed.",
+
+  "deviceCount": 11,
+  "dayEndsAt": "15:30",
+
+  "allowedEmailDomain": "example.org",
+  "roster": [],
+  "requireRoster": false,
+
+  "assetIds": {
+    "1": "CB-1042",
+    "2": "CB-1043"
+  },
+
+  "password": {
+    "salt": "",
+    "hash": "",
+    "iterations": 200000
+  },
+
+  "theme": {
+    "light": {
+      "accent": "#3f5b73",
+      "accent-ink": "#ffffff",
+      "ok": "#1a7f4b",
+      "ok-bg": "#e6f4ec",
+      "out": "#8a5a00",
+      "out-bg": "#fdf3e0",
+      "muted": "#5c6672"
+    },
+    "dark": {
+      "accent": "#93b2cc",
+      "accent-ink": "#0b0e12",
+      "ok": "#6ddc9d",
+      "ok-bg": "#16301f",
+      "out": "#f0c169",
+      "out-bg": "#33280f",
+      "muted": "#9aa4b0"
+    }
+  }
+}

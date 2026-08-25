@@ -1,0 +1,28 @@
+# Local kiosk settings: domain, roster, password hash, asset IDs, branding.
+# Never commit these — the published site is meant to be anonymous.
+# config.example.json is the only settings file that belongs in the repo.
+checkout-config.json
+config.json
+config.local.json
+*.config.json
+
+# Loan records contain student email addresses. This also covers anything
+# exported from the staff view into this folder by accident.
+*.csv
+
+# Credentials, in case anyone ever reaches for one.
+.env
+.env.*
+*.pem
+*.key
+
+# Editor and OS debris.
+*~
+*.bak
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chromebook Checkout</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#3f5b73">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-screen="loading">
+
+<!-- ============ LOADING / SETUP ============ -->
+<section class="screen active" data-name="loading">
+  <div class="pane">
+    <h1>Chromebook Checkout</h1>
+    <p class="muted" id="loadingMsg">Starting up&hellip;</p>
+  </div>
+</section>
+
+<!-- ============ HOME: DEVICE GRID ============ -->
+<section class="screen" data-name="home">
+  <header class="bar">
+    <h1>Loaner Chromebooks</h1>
+    <div class="bar-right">
+      <span class="pill" id="availCount"></span>
+      <button class="linkbtn" id="btnStaff">Staff</button>
+    </div>
+  </header>
+  <p class="lede">Tap your Chromebook's number.</p>
+  <div class="grid" id="deviceGrid"></div>
+  <footer class="foot muted small" id="homeFoot"></footer>
+</section>
+
+<!-- ============ CHECKOUT ============ -->
+<section class="screen" data-name="checkout">
+  <div class="pane wide">
+    <button class="linkbtn back" data-go="home">&larr; Cancel</button>
+    <h1>Checking out <span class="devnum" id="coDevice"></span></h1>
+
+    <label class="field">
+      <span id="coEmailLabel">Your school email</span>
+      <span class="emailwrap">
+        <input type="text" id="coEmail" list="rosterList" autocomplete="off"
+               autocapitalize="off" autocorrect="off" spellcheck="false"
+               placeholder="you@example.org">
+        <span class="suffix" id="coSuffix" hidden></span>
+      </span>
+    </label>
+    <datalist id="rosterList"></datalist>
+
+    <fieldset class="field">
+      <legend>Bring it back by</legend>
+      <div class="chips" id="coDue"></div>
+    </fieldset>
+
+    <p class="warn" id="coWarn" hidden></p>
+    <p class="err" id="coErr" hidden></p>
+
+    <div class="row">
+      <button class="btn primary big" id="btnCheckout">Check out</button>
+      <button class="btn big" data-go="home">Cancel</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RETURN ============ -->
+<section class="screen" data-name="return">
+  <div class="pane">
+    <button class="linkbtn back" data-go="home">&larr; Cancel</button>
+    <h1>Returning <span class="devnum" id="rtDevice"></span></h1>
+    <p id="rtDetail" class="muted"></p>
+    <div class="row">
+      <button class="btn primary big" id="btnReturn">Yes, return it</button>
+      <button class="btn big" data-go="home">Cancel</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DONE ============ -->
+<section class="screen" data-name="done">
+  <div class="pane center">
+    <div class="check">&#10003;</div>
+    <h1 id="doneTitle"></h1>
+    <p id="doneMsg" class="muted"></p>
+    <button class="btn big" data-go="home">Done</button>
+  </div>
+</section>
+
+<!-- ============ STAFF LOGIN ============ -->
+<section class="screen" data-name="login">
+  <div class="pane">
+    <button class="linkbtn back" data-go="home">&larr; Back</button>
+    <h1>Staff sign-in</h1>
+    <p class="warn" id="loginNote" hidden>This kiosk is still using the built-in
+       fallback password. Set your own in Settings once you are in.</p>
+    <label class="field">
+      <span>Password</span>
+      <input type="password" id="adminPw" autocomplete="off">
+    </label>
+    <p class="err" id="loginErr" hidden></p>
+    <button class="btn primary big" id="btnLogin">Sign in</button>
+  </div>
+</section>
+
+<!-- ============ ADMIN ============ -->
+<section class="screen" data-name="admin">
+  <header class="bar">
+    <h1>Staff view</h1>
+    <div class="bar-right">
+      <button class="linkbtn" id="btnExport">Export CSV</button>
+      <button class="linkbtn" id="btnLock">Lock</button>
+    </div>
+  </header>
+
+  <p class="warn" id="adminWarn" hidden>Still using the built-in fallback password.
+     Set your own under <strong>Settings</strong> below.</p>
+
+  <div class="stats" id="adminStats"></div>
+
+  <h2>Check out a Chromebook</h2>
+  <div class="card">
+    <div class="formrow">
+      <label class="field">
+        <span>Chromebook</span>
+        <select id="scDevice"></select>
+      </label>
+      <label class="field">
+        <span>Student or staff email</span>
+        <input type="text" id="scEmail" autocomplete="off" autocapitalize="off"
+               autocorrect="off" spellcheck="false" placeholder="name@example.org">
+      </label>
+      <label class="field">
+        <span>Due back</span>
+        <input type="datetime-local" id="scDue">
+      </label>
+    </div>
+    <div class="chips" id="scPresets"></div>
+    <label class="field">
+      <span>Note (optional)</span>
+      <input type="text" id="scNote" placeholder="e.g. own device in for repair">
+    </label>
+    <p class="err" id="scErr" hidden></p>
+    <button class="btn primary" id="btnStaffCheckout">Check out</button>
+    <p class="muted small" id="scHint"></p>
+  </div>
+
+  <h2>Currently out</h2>
+  <div class="tablewrap"><table id="outTable">
+    <thead><tr><th>#</th><th>Asset ID</th><th>Student</th><th>Since</th><th>Out for</th><th>Due</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <p class="muted small" id="outEmpty" hidden>Everything is on the shelf.</p>
+
+  <h2>Settings</h2>
+  <details class="card" id="settingsPanel">
+    <summary>Site settings</summary>
+    <p class="muted small" id="configStatus"></p>
+
+    <div class="formrow">
+      <label class="field"><span>Number of Chromebooks</span>
+        <input type="number" id="cfgDeviceCount" min="1" max="200"></label>
+      <label class="field"><span>School day ends</span>
+        <input type="time" id="cfgDayEnds"></label>
+      <label class="field"><span>Email domain</span>
+        <input type="text" id="cfgDomain" placeholder="example.org"
+               autocapitalize="off" spellcheck="false"></label>
+    </div>
+
+    <label class="field"><span>Student roster (one email per line, optional)</span>
+      <textarea id="cfgRoster" rows="4" spellcheck="false"
+                placeholder="ada@example.org"></textarea></label>
+    <label class="check"><input type="checkbox" id="cfgRequireRoster">
+      <span>Only allow addresses on the roster</span></label>
+
+    <label class="field"><span>Colours (JSON, optional)</span>
+      <textarea id="cfgTheme" rows="4" spellcheck="false"
+                placeholder='{"light":{"accent":"#334f66"},"dark":{"accent":"#aabbcc"}}'></textarea></label>
+
+    <div class="formrow">
+      <label class="field"><span>New staff password</span>
+        <input type="password" id="cfgPw1" autocomplete="new-password"
+               placeholder="leave blank to keep current"></label>
+      <label class="field"><span>Repeat new password</span>
+        <input type="password" id="cfgPw2" autocomplete="new-password"></label>
+    </div>
+
+    <p class="err" id="configErr" hidden></p>
+    <p class="ok-msg" id="configOk" hidden></p>
+
+    <div class="row">
+      <button class="btn primary" id="btnSaveConfig">Save settings</button>
+      <button class="btn" id="btnExportConfig">Export settings</button>
+      <button class="btn" id="btnImportConfig">Import settings</button>
+      <input type="file" id="cfgFile" accept="application/json,.json" hidden>
+    </div>
+    <p class="muted small">Keep an exported copy somewhere safe. If this device is
+       ever wiped, importing it restores every setting in one step.</p>
+  </details>
+
+  <h2>Asset IDs</h2>
+  <details class="card" id="assetPanel">
+    <summary>Match each Chromebook number to its asset ID tag</summary>
+    <p class="muted small">Students never see these. They appear in the staff tables
+       and in the CSV as their own column, so the log lines up with Admin Console.</p>
+    <div class="assetgrid" id="assetGrid"></div>
+    <p class="err" id="assetErr" hidden></p>
+    <button class="btn primary" id="btnSaveAssets">Save asset IDs</button>
+  </details>
+
+  <h2>Recent history</h2>
+  <div class="tablewrap"><table id="histTable">
+    <thead><tr><th>When</th><th>Event</th><th>#</th><th>Asset ID</th><th>Student</th><th>Out for</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <p class="muted small">Showing the most recent 60 events. Use <strong>Export CSV</strong> for the full log.</p>
+</section>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
