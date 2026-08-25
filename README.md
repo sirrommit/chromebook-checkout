@@ -72,6 +72,21 @@ Open **Settings** and fill in the number of Chromebooks, the school day end time
 your email domain, and optionally a roster and colour overrides. **Set your own
 password there** — the banner nags until you do.
 
+Under **Confirmation messages** you can reword what a student sees after checking
+out or returning — useful if they collect the device from a person rather than a
+shelf, e.g. `Ask at the front desk for Chromebook {device}`. Placeholders:
+
+| | |
+|---|---|
+| `{device}` | Device number |
+| `{asset}` | Asset ID tag |
+| `{email}` | The student's address |
+| `{due}` | Return-by, on checkout |
+| `{duration}` | How long it was out, on return |
+
+An unrecognised placeholder is left on screen rather than blanked, so a typo is
+visible instead of silent. Clearing a field restores the default wording.
+
 Then open **Asset IDs** and match each device number to its asset tag.
 
 **Export your settings when you are done** and keep the JSON somewhere safe, such

@@ -1,24 +1,25 @@
 {
   "_readme": "Copy to checkout-config.json in the kiosk's folder and edit. This file stays on the device and must never be committed.",
-
   "deviceCount": 11,
   "dayEndsAt": "15:30",
-
   "allowedEmailDomain": "example.org",
   "roster": [],
   "requireRoster": false,
-
   "assetIds": {
     "1": "CB-1042",
     "2": "CB-1043"
   },
-
   "password": {
     "salt": "",
     "hash": "",
     "iterations": 200000
   },
-
+  "messages": {
+    "checkoutTitle": "Ask at the front desk for Chromebook {device}",
+    "checkoutBody": "Please bring it back by {due}.",
+    "returnTitle": "Chromebook {device} returned",
+    "returnBody": "Thanks \u2014 it was out for {duration}."
+  },
   "theme": {
     "light": {
       "accent": "#3f5b73",

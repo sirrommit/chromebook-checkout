@@ -595,5 +595,57 @@ ok('settings can be exported and re-imported', /exportConfig/.test(src) && /impo
      /panel\.open && panel\.dataset\.dirty === '1'/.test(src));
 }
 
+
+// --- configurable confirmation messages ---------------------------------
+const MSG = mod({}, 'fillTemplate, mergeConfig, DEFAULT_CONFIG');
+
+ok('fillTemplate substitutes a placeholder',
+   MSG.fillTemplate('Chromebook {device} is yours', { device: '7' }) === 'Chromebook 7 is yours');
+ok('fillTemplate substitutes several, repeated',
+   MSG.fillTemplate('{device}/{asset} due {due} ({device})',
+     { device: '3', asset: 'CB-1', due: 'today 3pm' }) === '3/CB-1 due today 3pm (3)');
+ok('an unknown placeholder is left visible, not blanked',
+   MSG.fillTemplate('Ask {persn} for it', { person: 'x' }) === 'Ask {persn} for it',
+   'a typo should be obvious on screen rather than silently disappearing');
+ok('a message with no placeholders passes through',
+   MSG.fillTemplate('Ask at the front desk', {}) === 'Ask at the front desk');
+ok('fillTemplate tolerates null/undefined', MSG.fillTemplate(null, {}) === ''
+   && MSG.fillTemplate(undefined, {}) === '');
+ok('empty-string values substitute as empty',
+   MSG.fillTemplate('[{asset}]', { asset: '' }) === '[]');
+ok('braces that are not placeholders are untouched',
+   MSG.fillTemplate('use {} or {a-b}', {}) === 'use {} or {a-b}');
+
+ok('defaults exist for all four messages',
+   ['checkoutTitle','checkoutBody','returnTitle','returnBody']
+     .every(k => typeof MSG.DEFAULT_CONFIG.messages[k] === 'string'
+                 && MSG.DEFAULT_CONFIG.messages[k].length));
+
+ok('a custom message overrides the default',
+   MSG.mergeConfig({ messages: { checkoutTitle: 'Ask at the desk' } })
+      .messages.checkoutTitle === 'Ask at the desk');
+ok('a blank message falls back to the default',
+   MSG.mergeConfig({ messages: { checkoutTitle: '   ' } })
+      .messages.checkoutTitle === MSG.DEFAULT_CONFIG.messages.checkoutTitle,
+   'clearing a field should restore the default, not show nothing');
+ok('overriding one message leaves the others alone',
+   MSG.mergeConfig({ messages: { checkoutTitle: 'x' } })
+      .messages.returnBody === MSG.DEFAULT_CONFIG.messages.returnBody);
+ok('a non-string message is ignored',
+   MSG.mergeConfig({ messages: { checkoutTitle: 42 } })
+      .messages.checkoutTitle === MSG.DEFAULT_CONFIG.messages.checkoutTitle);
+ok('a missing messages block uses all defaults',
+   MSG.mergeConfig({}).messages.checkoutBody === MSG.DEFAULT_CONFIG.messages.checkoutBody);
+
+// Staff-entered text must never become markup.
+ok('confirmation messages are rendered as text, not HTML',
+   /doneTitle'\)\.textContent = fillTemplate/.test(src)
+   && /doneMsg'\)\.textContent   = fillTemplate/.test(src));
+ok('no innerHTML on the done screen', !/#done\w*'\)\.innerHTML/.test(src));
+
+for (const id of ['cfgMsgCoTitle','cfgMsgCoBody','cfgMsgRtTitle','cfgMsgRtBody'])
+  ok('settings form has #' + id, new RegExp('id="' + id + '"').test(html));
+ok('placeholder help is shown in the form', /\{device\}/.test(html) && /\{duration\}/.test(html));
+
 console.log(FAIL ? `\n${FAIL} FAILURE(S)` : '\nAll tests passed.');
 process.exit(FAIL ? 1 : 0);

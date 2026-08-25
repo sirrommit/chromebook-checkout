@@ -39,6 +39,16 @@ const DEFAULT_CONFIG = {
   },
   kioskIdleMs: 45000,
   adminIdleLockMs: 120000,
+  // Wording of the confirmation screens. Placeholders in braces are filled in;
+  // an unrecognised one is left visible so a typo is obvious rather than blank.
+  //   {device} {asset} {email} {due} {duration}
+  messages: {
+    checkoutTitle: 'Chromebook {device} is yours',
+    checkoutBody:  'Please bring it back by {due}.',
+    returnTitle:   'Chromebook {device} returned',
+    returnBody:    'Thanks — it was out for {duration}.',
+  },
+
   // Any of the -l / -d colour tokens in styles.css may be overridden here.
   theme: {},
 };
@@ -135,8 +145,24 @@ const CONFIG_TEMPLATE = {
   requireRoster: false,
   assetIds: {},
   password: { salt: '', hash: '', iterations: 200000 },
+  messages: {
+    checkoutTitle: 'Chromebook {device} is yours',
+    checkoutBody:  'Please bring it back by {due}.',
+    returnTitle:   'Chromebook {device} returned',
+    returnBody:    'Thanks — it was out for {duration}.',
+  },
   theme: { light: {}, dark: {} },
 };
+
+/**
+ * Fill {placeholders} in a configurable message. Unknown names are left as-is,
+ * so a mistyped placeholder shows up on screen instead of silently vanishing.
+ */
+function fillTemplate(tpl, vars) {
+  return String(tpl == null ? '' : tpl)
+    .replace(/\{(\w+)\}/g, (m, k) =>
+      Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : m);
+}
 
 /* ---------------------------------------------------------------- config */
 
@@ -155,6 +181,10 @@ function mergeConfig(raw) {
     ? { iterations: 200000, ...local }
     : { ...DEFAULT_CONFIG.password };
   merged.theme    = { ...(o.theme || {}) };
+  // Blank entries fall back to the default wording rather than showing nothing.
+  merged.messages = { ...DEFAULT_CONFIG.messages };
+  for (const [k, v] of Object.entries(o.messages || {}))
+    if (typeof v === 'string' && v.trim()) merged.messages[k] = v;
   merged.assetIds = { ...(o.assetIds || {}) };
   if (!Array.isArray(merged.roster)) merged.roster = [];
   if (!Array.isArray(merged.dueOptions) || !merged.dueOptions.length)
@@ -606,8 +636,12 @@ async function doCheckout() {
   });
   rebuild();
 
-  $('#doneTitle').textContent = `Chromebook ${coDevice} is yours`;
-  $('#doneMsg').textContent   = `Please bring it back by ${fmtWhen(due)}.`;
+  const vars = {
+    device: coDevice, asset: ASSETS[coDevice] || '', email,
+    due: fmtWhen(due), duration: '',
+  };
+  $('#doneTitle').textContent = fillTemplate(CONFIG.messages.checkoutTitle, vars);
+  $('#doneMsg').textContent   = fillTemplate(CONFIG.messages.checkoutBody, vars);
   show('done');
 }
 
@@ -643,8 +677,12 @@ async function doReturn(id, byStaff = false) {
   rebuild();
 
   if (byStaff) { renderAdmin(); toast(`Chromebook ${id} marked returned.`); return; }
-  $('#doneTitle').textContent = `Chromebook ${id} returned`;
-  $('#doneMsg').textContent   = `Thanks — it was out for ${fmtDur(outMs)}.`;
+  const vars = {
+    device: id, asset: ASSETS[id] || '', email: loan.email,
+    due: loan.due ? fmtWhen(new Date(loan.due)) : '', duration: fmtDur(outMs),
+  };
+  $('#doneTitle').textContent = fillTemplate(CONFIG.messages.returnTitle, vars);
+  $('#doneMsg').textContent   = fillTemplate(CONFIG.messages.returnBody, vars);
   show('done');
 }
 
@@ -700,6 +738,10 @@ function renderConfigPanel() {
   $('#cfgDomain').value       = CONFIG.allowedEmailDomain || '';
   $('#cfgRoster').value       = (CONFIG.roster || []).join('\n');
   $('#cfgRequireRoster').checked = Boolean(CONFIG.requireRoster);
+  $('#cfgMsgCoTitle').value   = CONFIG.messages.checkoutTitle;
+  $('#cfgMsgCoBody').value    = CONFIG.messages.checkoutBody;
+  $('#cfgMsgRtTitle').value   = CONFIG.messages.returnTitle;
+  $('#cfgMsgRtBody').value    = CONFIG.messages.returnBody;
   $('#cfgTheme').value        = Object.keys(CONFIG.theme || {}).length
     ? JSON.stringify(CONFIG.theme, null, 2) : '';
   $('#cfgPw1').value = '';
@@ -769,6 +811,12 @@ async function collectConfig() {
       roster,
       requireRoster,
       assetIds: CONFIG.assetIds,      // maintained by the Asset IDs panel
+      messages: {
+        checkoutTitle: $('#cfgMsgCoTitle').value.trim(),
+        checkoutBody:  $('#cfgMsgCoBody').value.trim(),
+        returnTitle:   $('#cfgMsgRtTitle').value.trim(),
+        returnBody:    $('#cfgMsgRtBody').value.trim(),
+      },
       password,
       theme,
     },

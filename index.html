@@ -174,6 +174,25 @@
     <label class="check"><input type="checkbox" id="cfgRequireRoster">
       <span>Only allow addresses on the roster</span></label>
 
+    <fieldset class="field">
+      <legend>Confirmation messages</legend>
+      <p class="muted small">Shown to the student after checking out or returning.
+         Placeholders: <code>{device}</code> <code>{asset}</code> <code>{email}</code>
+         <code>{due}</code> <code>{duration}</code>. Leave blank for the default.</p>
+      <div class="formrow">
+        <label class="field"><span>After checkout &mdash; heading</span>
+          <input type="text" id="cfgMsgCoTitle"></label>
+        <label class="field"><span>After checkout &mdash; detail</span>
+          <input type="text" id="cfgMsgCoBody"></label>
+      </div>
+      <div class="formrow">
+        <label class="field"><span>After return &mdash; heading</span>
+          <input type="text" id="cfgMsgRtTitle"></label>
+        <label class="field"><span>After return &mdash; detail</span>
+          <input type="text" id="cfgMsgRtBody"></label>
+      </div>
+    </fieldset>
+
     <label class="field"><span>Colours (JSON, optional)</span>
       <textarea id="cfgTheme" rows="4" spellcheck="false"
                 placeholder='{"light":{"accent":"#334f66"},"dark":{"accent":"#aabbcc"}}'></textarea></label>
